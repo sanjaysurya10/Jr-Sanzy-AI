@@ -51,7 +51,7 @@ returned `{"status":"ok","version":"0.1.0"}` and `/docs` returned 200.
 Done when:
 - [x] `uv run uvicorn app.main:app --reload` serves `/api/v1/health`.
 - [x] `/docs` shows the OpenAPI page.
-- [ ] CI green on push -- not run yet; nothing has been pushed.
+- [x] CI green on push -- backend job passed in run 43926855589 (see first push below).
 
 ## 2026-11-16 -- Phase 2: Frontend skeleton
 
@@ -88,9 +88,17 @@ and no console errors:
 Done when:
 - [x] `npm run dev` shows the dashboard at localhost:3000.
 - [x] Layout correct at 375 px, 768 px and 1280 px.
-- [ ] CI green -- not run yet; nothing has been pushed.
+- [x] CI green -- run 43926855589 on `phase-2-frontend-skeleton` (commit 83a86cd):
+      backend and frontend jobs both passed.
+
+## 2026-11-16 -- Commits and first push
+
+- Git identity set for this repo only (`git config` without `--global`).
+- `phase-1-backend-skeleton` (c8f386d) and `phase-2-frontend-skeleton` (83a86cd) pushed to
+  `origin`. `main` is not pushed; merging into it goes through a PR (PRD 10.6).
+- GitHub started a CI run for the Phase 2 branch only. The Phase 1 "CI green on push" box
+  is ticked on the strength of that run's backend job, which checks the same backend code.
 
 ## Blockers
 
-- Git has no `user.name` / `user.email` on this laptop, so nothing is committed or pushed
-  yet. This also blocks the "CI green" boxes for Phases 1 and 2.
+- None for Phase 3. Phase 4 needs the Supabase project and a test-database choice.
