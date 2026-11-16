@@ -128,6 +128,8 @@ Done when:
 - [x] Stopping the backend shows an error state, not a crash.
 - [x] `npm run gen:api` regenerates types.
 
+CI: run 43927770255 on `phase-3-connect` (commit 329b22e) passed, backend and frontend jobs.
+
 ## Blockers
 
 - None for Phase 3. Phase 4 needs the Supabase project and a test-database choice.
