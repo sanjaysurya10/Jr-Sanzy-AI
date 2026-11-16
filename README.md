@@ -4,7 +4,7 @@ Personal AI assistant: one FastAPI backend and one Next.js dashboard that runs o
 laptop and on the iPhone as a PWA. Full spec in [docs/PRD.md](docs/PRD.md); rules for
 Claude Code in [CLAUDE.md](CLAUDE.md); decisions in [docs/decisions/](docs/decisions/).
 
-Status: Phases 0-2 built locally (backend and frontend skeletons). See PRD section 9 and [docs/PROCESS_LOG.md](docs/PROCESS_LOG.md).
+Status: Phases 0-3 done (backend and frontend skeletons, connected). See PRD section 9 and [docs/PROCESS_LOG.md](docs/PROCESS_LOG.md).
 
 ## Backend
 
@@ -30,11 +30,18 @@ uv run ruff check && uv run mypy app && uv run pytest
 
 ```bash
 cd frontend
+cp .env.example .env.local
 npm install
 npm run dev
 ```
 
-Dashboard: http://localhost:3000
+Dashboard: http://localhost:3000. The header shows "Backend: OK" when the backend is running.
+
+Regenerate API types after any backend API change (backend must be running on port 8000):
+
+```bash
+npm run gen:api
+```
 
 Checks:
 

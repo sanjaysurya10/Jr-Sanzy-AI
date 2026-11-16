@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { BackendStatus } from "@/components/layout/BackendStatus";
 import { NavIcon } from "@/components/layout/NavIcon";
 import { TodayDate } from "@/components/layout/TodayDate";
 
@@ -21,6 +22,7 @@ export function Header({ pendingDecisionCount }: HeaderProps) {
           <TodayDate />
         </div>
         <div className="flex items-center gap-2">
+          <BackendStatus />
           <Link
             href="/decisions"
             aria-label={bellLabel}

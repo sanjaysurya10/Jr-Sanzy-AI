@@ -21,3 +21,9 @@ def test_settings_reject_unknown_app_env(monkeypatch: pytest.MonkeyPatch) -> Non
 
     with pytest.raises(ValidationError):
         Settings(_env_file=None)
+
+
+def test_cors_origin_list_splits_and_trims() -> None:
+    settings = Settings(_env_file=None, cors_origins=" http://localhost:3000 ,https://a.example,, ")
+
+    assert settings.cors_origin_list == ["http://localhost:3000", "https://a.example"]

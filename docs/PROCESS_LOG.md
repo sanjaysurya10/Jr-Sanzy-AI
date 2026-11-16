@@ -99,6 +99,35 @@ Done when:
 - GitHub started a CI run for the Phase 2 branch only. The Phase 1 "CI green on push" box
   is ticked on the strength of that run's backend job, which checks the same backend code.
 
+## 2026-11-16 -- Phase 3: Connect frontend and backend
+
+Built:
+- Backend: `CORS_ORIGINS` setting (comma-separated, default `http://localhost:3000`) and
+  CORS middleware as the outermost layer, so error responses carry CORS headers too.
+- Frontend: `src/lib/api/client.ts` (`apiFetch` + typed `ApiError`), generated
+  `src/lib/api/schema.d.ts`, `npm run gen:api`, TanStack Query provider, `useHealth` hook
+  and `BackendStatus` in the header.
+- `frontend/.env.example` with `NEXT_PUBLIC_API_URL`; `backend/.env.example` gains
+  `CORS_ORIGINS`.
+
+Decisions and deviations:
+- `apiFetch` does not attach a bearer token yet; there is no session until Phase 4.
+- `gen:api` reads `http://localhost:8000/openapi.json`, so the backend must be running.
+  The URL is fixed in the script because `$API_URL` does not expand in npm scripts on Windows.
+- A missing `NEXT_PUBLIC_API_URL` raises `CONFIG_ERROR` instead of silently falling back
+  to localhost, so a misconfigured deploy is visible.
+- New packages, both named in PRD 3.1: `@tanstack/react-query`, `openapi-typescript`.
+
+Verified locally: backend ruff, mypy and 20 tests pass (99% coverage); frontend ESLint,
+`tsc --noEmit` and 20 tests pass. In the browser: header shows "Backend: OK" from the
+real API (also at 375 px, no overflow); with the backend stopped it shows
+"Backend: unreachable" and the dashboard still renders, with no error overlay.
+
+Done when:
+- [x] Dashboard shows "Backend: OK" from the real API.
+- [x] Stopping the backend shows an error state, not a crash.
+- [x] `npm run gen:api` regenerates types.
+
 ## Blockers
 
 - None for Phase 3. Phase 4 needs the Supabase project and a test-database choice.
