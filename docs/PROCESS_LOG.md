@@ -297,7 +297,42 @@ Vercel accounts, created without payment methods.
 - No Render or Vercel configuration was done by Claude: both dashboards need the user's login,
   and secrets (DATABASE_URL) are typed in by the user.
 
+## 2026-11-23 -- Phase 5: deployed, and a Supabase quota warning
+
+Deployed (user clicked through the dashboards; Claude verified from outside):
+- Backend: Render free web service `Jr-Sanzy-AI`, Frankfurt, branch `main`, root `backend`,
+  build `pip install uv && uv sync --frozen`, start `uv run uvicorn app.main:app --host 0.0.0.0
+  --port $PORT`, health check `/api/v1/health`. Live at https://jr-sanzy-ai.onrender.com.
+  First attempt showed a $7/month instance selected by default; the user switched it to Free
+  ($0) before deploying. The default region offered was Ohio; changed to Frankfurt.
+- Frontend: Vercel Hobby project `jr-sanzy-ai`, root `frontend`, live at
+  https://jr-sanzy-ai.vercel.app. The optional Supabase integration was declined so no
+  extra keys reach Vercel.
+- `CORS_ORIGINS` on Render now lists `http://localhost:3000` and the Vercel URL. Verified:
+  both allowed, including the Authorization preflight; a random origin and a preview-style
+  origin are blocked.
+- Scan of the deployed JavaScript: contains the Render API URL and Supabase URL; no
+  `service_role`, no `localhost:8000`, no database URL.
+- Supabase URL Configuration: two redirect URLs added by the user; Site URL to be confirmed.
+
+Incident: Supabase banner "Grace period is over" on Sanzy Org (free plan).
+- Usage page: egress 14.5 GB of 5 GB (290%), about 650 MB every day since early November,
+  which predates Jr Sanzy (created today). Database size 0.511 of 0.5 GB.
+- Per-project database sizes: Jr Sanzy 11 MB (0 tasks, 1 user), Dockcast 473 MB. The older
+  traffic and size belong to the user's other project, Dockcast.
+- Risk: under the Fair Use Policy the organisation's projects can be restricted and answer
+  402. Nothing was blocked at the time; backend health, Vercel and Supabase auth all
+  responded. Quotas reset on 2 December (billing cycle 2 Nov to 2 Dec).
+- Action (user's decision, done by the user): pause Dockcast. Its status read PAUSING.
+  Usage figures can take up to an hour to refresh. No paid plan was bought.
+- Lesson recorded for ADR 0002: Supabase free quotas are shared across every active project
+  in the organisation, so another project can push Jr Sanzy over its limits.
+
+Not yet confirmed: the user signing in on the live site and adding, completing and deleting a
+task, and the Supabase quota banner clearing. Phase 5 stays open until both are confirmed.
+
 ## Blockers
 
-- Phase 5 needs the user at their Render and Vercel dashboards; see docs/DEPLOY.md.
-- GitHub default branch still `phase-1-backend-skeleton`; switch to `main` before deploying.
+- Phase 5: user to test sign-in and the task flow on https://jr-sanzy-ai.vercel.app, confirm the
+  Supabase Site URL saved, and check the Usage banner clears after pausing Dockcast.
+- Merge `phase-5-deploy` (docs only) into `main` once Phase 5 is confirmed.

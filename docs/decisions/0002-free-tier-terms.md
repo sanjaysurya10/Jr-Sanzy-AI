@@ -37,6 +37,9 @@ Source: https://supabase.com/pricing
 - Limit of 2 active projects. This account already has two active: another app and Jr Sanzy.
   A third free project cannot be created without pausing one.
 - 500 MB database, 50,000 monthly active users, 5 GB egress.
+- Quotas are per organisation, shared by every active project in it. On 2026-11-23 another
+  project (Dockcast, 473 MB) pushed the organisation over its egress and database limits,
+  which could restrict Jr Sanzy too (Fair Use Policy, requests answered with 402).
 - No managed daily backups on the free plan (Pro has 7 days), hence the weekly `pg_dump`
   in PRD 10.4.
 
