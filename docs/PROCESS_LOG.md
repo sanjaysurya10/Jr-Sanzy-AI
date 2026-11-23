@@ -331,8 +331,24 @@ Incident: Supabase banner "Grace period is over" on Sanzy Org (free plan).
 Not yet confirmed: the user signing in on the live site and adding, completing and deleting a
 task, and the Supabase quota banner clearing. Phase 5 stays open until both are confirmed.
 
+## 2026-11-23 -- Phase 5 complete
+
+The user signed in on https://jr-sanzy-ai.vercel.app and added, completed and deleted a task
+on the live site ("All worked").
+
+Done when:
+- [x] Login and tasks work on the live Vercel URL from the laptop.
+- [x] No secrets in the repo or in `NEXT_PUBLIC_*` variables except the Supabase anon key and
+      URL (deployed JavaScript scanned; repo history scanned).
+
+Still to watch: the Supabase quota banner should clear after Dockcast was paused (figures
+refresh within about an hour). If it does not, the organisation stays at risk of 402 responses
+until the quota resets on 2 December.
+
+Next: Phase 6 (PWA and notifications). Needs the user's iPhone (install from Safari, then a
+test push) and the live site, which now exists.
+
 ## Blockers
 
-- Phase 5: user to test sign-in and the task flow on https://jr-sanzy-ai.vercel.app, confirm the
-  Supabase Site URL saved, and check the Usage banner clears after pausing Dockcast.
-- Merge `phase-5-deploy` (docs only) into `main` once Phase 5 is confirmed.
+- Phase 6 manual checks need the user's iPhone (iOS 16.4 or later, install via Safari).
+- Merge `phase-5-deploy` (docs only) into `main` and tag `v0.5.0` once the user approves.
