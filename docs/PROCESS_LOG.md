@@ -275,7 +275,29 @@ All four "Done when" boxes are ticked. Code is unchanged since `main` (d2cf24f),
 `v0.4.0` was placed there. Next is Phase 5 (deploy), which needs the user's Render and
 Vercel accounts, created without payment methods.
 
+## 2026-11-23 -- Phase 5: Deploy (preparation)
+
+- User confirmed Render and Vercel accounts exist, both on free Hobby plans, no payment methods
+  (their screenshots showed the Vercel Hobby dashboard and a Render Hobby workspace).
+- Recorded each provider's free-tier terms with today's date in
+  `docs/decisions/0002-free-tier-terms.md`, read from the providers' own pages. Notable:
+  Supabase allows only 2 active free projects (the account now has exactly 2), pauses after a
+  week idle and has no free backups; Render spins down after 15 minutes idle (about a minute
+  to wake).
+- Tested the exact Render build and start commands from a fresh clone of `main` with
+  production settings: `uv sync --frozen` succeeded; `/api/v1/health` returned
+  `{"status":"ok","db":"ok"}` against Supabase; `/dashboard` returned 401 without a token;
+  CORS header sent only for the allowed origin. The temporary clone, which held a copy of
+  `backend/.env`, was deleted afterwards.
+- A first attempt cloned the repo's default branch and got Phase 1 code: GitHub's default
+  branch is still `phase-1-backend-skeleton`. Render and Vercel deploy the default branch
+  unless told otherwise, so the user must switch it to `main` first (now step 0 of the guide).
+- Wrote `docs/DEPLOY.md` with exact settings. Migrations stay a documented manual step
+  (`uv run alembic upgrade head`), as PRD 5 allows.
+- No Render or Vercel configuration was done by Claude: both dashboards need the user's login,
+  and secrets (DATABASE_URL) are typed in by the user.
+
 ## Blockers
 
-- Needs the user: create Render and Vercel accounts (no payment methods) for Phase 5.
-- Optional: switch GitHub's default branch to `main` (repo Settings -> Branches).
+- Phase 5 needs the user at their Render and Vercel dashboards; see docs/DEPLOY.md.
+- GitHub default branch still `phase-1-backend-skeleton`; switch to `main` before deploying.

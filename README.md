@@ -4,7 +4,7 @@ Personal AI assistant: one FastAPI backend and one Next.js dashboard that runs o
 laptop and on the iPhone as a PWA. Full spec in [docs/PRD.md](docs/PRD.md); rules for
 Claude Code in [CLAUDE.md](CLAUDE.md); decisions in [docs/decisions/](docs/decisions/).
 
-Status: Phases 0-3 done; Phase 4 (database and auth) built, awaiting a Supabase login to verify end to end. See PRD section 9 and [docs/PROCESS_LOG.md](docs/PROCESS_LOG.md).
+Status: Phases 0-4 done (database and auth). Phase 5 (deployment) in progress. See PRD section 9 and [docs/PROCESS_LOG.md](docs/PROCESS_LOG.md).
 
 ## Backend
 
@@ -48,3 +48,8 @@ Checks:
 ```bash
 npm run lint && npx tsc --noEmit && npm test
 ```
+
+## Deploy
+
+Backend on Render, frontend on Vercel, both free. Step by step in
+[docs/DEPLOY.md](docs/DEPLOY.md).
