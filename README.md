@@ -4,7 +4,7 @@ Personal AI assistant: one FastAPI backend and one Next.js dashboard that runs o
 laptop and on the iPhone as a PWA. Full spec in [docs/PRD.md](docs/PRD.md); rules for
 Claude Code in [CLAUDE.md](CLAUDE.md); decisions in [docs/decisions/](docs/decisions/).
 
-Status: Phases 0-3 done (backend and frontend skeletons, connected). See PRD section 9 and [docs/PROCESS_LOG.md](docs/PROCESS_LOG.md).
+Status: Phases 0-3 done; Phase 4 (database and auth) built, awaiting a Supabase login to verify end to end. See PRD section 9 and [docs/PROCESS_LOG.md](docs/PROCESS_LOG.md).
 
 ## Backend
 
@@ -35,7 +35,7 @@ npm install
 npm run dev
 ```
 
-Dashboard: http://localhost:3000. The header shows "Backend: OK" when the backend is running.
+Fill in `.env.local` with your Supabase project URL and publishable key. Dashboard: http://localhost:3000. The header shows "Backend: OK" when the backend is running.
 
 Regenerate API types after any backend API change (backend must be running on port 8000):
 

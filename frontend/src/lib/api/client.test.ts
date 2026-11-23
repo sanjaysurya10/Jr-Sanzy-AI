@@ -84,4 +84,115 @@ describe("apiFetch", () => {
     expect(error).toMatchObject({ status: 0, code: "CONFIG_ERROR" });
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  describe("with auth handlers", () => {
+    function authHandlers(overrides: Partial<import("@/lib/api/client").AuthHandlers> = {}) {
+      return {
+        getAccessToken: vi.fn().mockResolvedValue("access-1"),
+        refreshAccessToken: vi.fn().mockResolvedValue("access-2"),
+        onSessionExpired: vi.fn(),
+        ...overrides,
+      };
+    }
+
+    function sentAuthorization(callIndex: number): string | null {
+      const init = fetchMock.mock.calls[callIndex][1];
+      return new Headers(init?.headers).get("Authorization");
+    }
+
+    it("sends the bearer token", async () => {
+      fetchMock.mockResolvedValue(jsonResponse(200, {}));
+      const { apiFetch, setAuthHandlers } = await loadClient();
+      setAuthHandlers(authHandlers());
+
+      await apiFetch("/api/v1/me");
+
+      expect(sentAuthorization(0)).toBe("Bearer access-1");
+    });
+
+    it("sends no Authorization header without handlers", async () => {
+      fetchMock.mockResolvedValue(jsonResponse(200, {}));
+      const { apiFetch } = await loadClient();
+
+      await apiFetch("/api/v1/health");
+
+      expect(sentAuthorization(0)).toBeNull();
+    });
+
+    it("refreshes the session once on 401 and retries with the new token", async () => {
+      fetchMock
+        .mockResolvedValueOnce(jsonResponse(401, { error: { code: "UNAUTHENTICATED", message: "x" } }))
+        .mockResolvedValueOnce(jsonResponse(200, { ok: true }));
+      const handlers = authHandlers();
+      const { apiFetch, setAuthHandlers } = await loadClient();
+      setAuthHandlers(handlers);
+
+      const body = await apiFetch("/api/v1/me");
+
+      expect(body).toEqual({ ok: true });
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(sentAuthorization(1)).toBe("Bearer access-2");
+      expect(handlers.onSessionExpired).not.toHaveBeenCalled();
+    });
+
+    it("ends the session when the retry is also rejected", async () => {
+      fetchMock.mockResolvedValue(
+        jsonResponse(401, { error: { code: "UNAUTHENTICATED", message: "Invalid or expired token" } }),
+      );
+      const handlers = authHandlers();
+      const { ApiError, apiFetch, setAuthHandlers } = await loadClient();
+      setAuthHandlers(handlers);
+
+      const error: unknown = await apiFetch("/api/v1/me").catch((caught: unknown) => caught);
+
+      expect(error).toBeInstanceOf(ApiError);
+      expect(error).toMatchObject({ status: 401, code: "UNAUTHENTICATED" });
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(handlers.onSessionExpired).toHaveBeenCalledOnce();
+    });
+
+    it("ends the session without retrying when no refreshed token is available", async () => {
+      fetchMock.mockResolvedValue(
+        jsonResponse(401, { error: { code: "UNAUTHENTICATED", message: "x" } }),
+      );
+      const handlers = authHandlers({ refreshAccessToken: vi.fn().mockResolvedValue(null) });
+      const { apiFetch, setAuthHandlers } = await loadClient();
+      setAuthHandlers(handlers);
+
+      await apiFetch("/api/v1/me").catch(() => undefined);
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(handlers.onSessionExpired).toHaveBeenCalledOnce();
+    });
+
+    it("does not refresh on other errors", async () => {
+      fetchMock.mockResolvedValue(
+        jsonResponse(404, { error: { code: "TASK_NOT_FOUND", message: "Task not found" } }),
+      );
+      const handlers = authHandlers();
+      const { apiFetch, setAuthHandlers } = await loadClient();
+      setAuthHandlers(handlers);
+
+      await apiFetch("/api/v1/tasks/x").catch(() => undefined);
+
+      expect(handlers.refreshAccessToken).not.toHaveBeenCalled();
+    });
+
+    it("sends JSON bodies with a JSON content type", async () => {
+      fetchMock.mockResolvedValue(jsonResponse(201, {}));
+      const { apiFetch } = await loadClient();
+
+      await apiFetch("/api/v1/tasks", { method: "POST", body: JSON.stringify({ title: "x" }) });
+
+      const headers = new Headers(fetchMock.mock.calls[0][1]?.headers);
+      expect(headers.get("Content-Type")).toBe("application/json");
+    });
+
+    it("returns null for an empty 204 response", async () => {
+      fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
+      const { apiFetch } = await loadClient();
+
+      expect(await apiFetch("/api/v1/tasks/x", { method: "DELETE" })).toBeNull();
+    });
+  });
 });

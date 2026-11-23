@@ -169,8 +169,53 @@ Done when (frontend half still to build):
 - [x] Test confirms RLS is enabled on every table.
 - [x] Integration tests for tasks CRUD pass.
 
+## 2026-11-23 -- Phase 4: Database and auth (frontend half, Supabase project)
+
+Supabase:
+- Free project "Jr Sanzy" created in the Sanzy Org, region eu-west-1, quoted EUR 0/month
+  (cost confirmed with the user first). Project ref `udwdtjoipzihxkyadskj`.
+- Its JWKS endpoint serves one ES256 (P-256) key, which the backend verifier supports.
+- The database password was not issued to us, so the backend still points at the local dev
+  database. The Supabase migration run waits for the user to reset the DB password in the
+  dashboard and put the connection string into `backend/.env`.
+- Public URL and publishable key are in `frontend/.env.local` (git-ignored) and
+  `frontend/.env.example` holds placeholders. `backend/.env` has the real `SUPABASE_URL`.
+
+Built (branch `phase-4-frontend`):
+- `lib/supabase.ts` (lazy client), `AuthProvider` + `useAuth`, `AuthGuard`, `/login` with
+  `LoginForm`, `SignOutButton` in the header.
+- `apiFetch` sends the bearer token; on 401 it refreshes the session once and retries, then
+  signs out (FR-AUTH-4).
+- Route groups: `app/(app)/` holds the shell (sidebar, header, bottom nav) behind the guard;
+  `/login` sits outside it.
+- Hooks `useDashboard` (refetch on focus and every 60 s), `useTasks` (cursor pagination),
+  `useCreateTask`, `useUpdateTask` (optimistic status change with rollback), `useDeleteTask`.
+- `/tasks` page: add, edit, complete, reopen, delete (two-step confirm), filters, search,
+  load more. Dashboard now shows real data: greeting, priority columns with true totals,
+  real activity feed. Briefing and decisions show empty states until Phases 9-10.
+- `lib/api/types.ts` only aliases generated types; `placeholder.ts` is deleted.
+- CI: backend job gets a Postgres 17 service container and `TEST_DATABASE_URL` (PRD 10.2).
+
+Verified locally: ESLint, `tsc --noEmit` and `next build` clean; 38 frontend tests pass.
+Against the running app: an unauthenticated visit to `/tasks` or `/` redirects to `/login`;
+the login form renders without overflow at 375 px with 44 px targets.
+
+NOT verified: signing in and the create/complete/delete flow in the browser, because that
+needs the user's Supabase login. No credentials were entered anywhere.
+
+Done when:
+- [ ] Log in, create, complete and delete tasks; the dashboard updates (needs a Supabase user).
+- [x] Request without a token returns 401.
+- [x] Test confirms RLS is enabled on every table.
+- [x] Integration tests for tasks CRUD pass.
+
+Security note for the user: Supabase allows public sign-ups by default. Every valid token
+creates a backend user, so after creating the real login, disable "Allow new users to sign
+up" in Supabase Auth settings.
+
 ## Blockers
 
-- Phase 4 frontend (login, AuthGuard, tasks page, live board) needs a Supabase project:
-  URL, anon key and a Supabase Auth user. Backend `.env` also needs its `DATABASE_URL`.
-- Branches `phase-1`, `phase-2`, `phase-3` are not merged to `main`; no PRs open.
+- Needs the user: a Supabase Auth user (email and password) to test login end to end; the
+  Supabase DB password reset and connection string in `backend/.env`; disabling public
+  sign-ups in Supabase Auth settings.
+- Branches `phase-1` to `phase-4` are not merged to `main`; no PRs open.

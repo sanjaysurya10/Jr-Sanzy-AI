@@ -2,12 +2,17 @@ import Link from "next/link";
 
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import type { PlaceholderDecision } from "@/lib/placeholder";
 
 const MAX_VISIBLE_DECISIONS = 3;
 
+export interface DecisionSummary {
+  id: string;
+  title: string;
+  rationale: string;
+}
+
 interface DecisionCentreProps {
-  decisions: PlaceholderDecision[];
+  decisions: DecisionSummary[];
 }
 
 export function DecisionCentre({ decisions }: DecisionCentreProps) {

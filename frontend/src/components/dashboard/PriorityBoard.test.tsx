@@ -1,27 +1,28 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 import { PriorityBoard } from "@/components/dashboard/PriorityBoard";
-import type { PlaceholderTask, Priority } from "@/lib/placeholder";
+import type { TaskPriority, TaskRead } from "@/lib/api/types";
+import { makeGroups, makeTask, renderWithQuery } from "@/test/helpers";
 
-function buildTasks(priority: Priority, count: number): PlaceholderTask[] {
-  return Array.from({ length: count }, (_, index) => ({
-    id: `${priority}-${index}`,
-    title: `${priority} task ${index + 1}`,
-    priority,
-    dueLabel: null,
-  }));
+vi.mock("@/lib/api/client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/client")>()),
+  apiFetch: vi.fn(),
+}));
+
+function buildTasks(priority: TaskPriority, count: number): TaskRead[] {
+  return Array.from({ length: count }, (_, index) =>
+    makeTask({ id: `${priority}-${index}`, title: `${priority} task ${index + 1}`, priority }),
+  );
 }
 
 describe("PriorityBoard", () => {
   it("always renders all four priority columns in order", () => {
-    render(<PriorityBoard tasks={[]} />);
+    renderWithQuery(<PriorityBoard groups={makeGroups()} />);
 
-    const columnNames = screen
-      .getAllByRole("heading", { level: 3 })
-      .map((heading) => heading.id);
+    const columnIds = screen.getAllByRole("heading", { level: 3 }).map((heading) => heading.id);
 
-    expect(columnNames).toEqual([
+    expect(columnIds).toEqual([
       "priority-critical-heading",
       "priority-high-heading",
       "priority-normal-heading",
@@ -30,7 +31,7 @@ describe("PriorityBoard", () => {
   });
 
   it("shows a message in each empty column instead of a blank box", () => {
-    render(<PriorityBoard tasks={[]} />);
+    renderWithQuery(<PriorityBoard groups={makeGroups()} />);
 
     expect(screen.getByText("Nothing critical. Good.")).toBeTruthy();
     expect(screen.getByText("No high-priority tasks.")).toBeTruthy();
@@ -39,7 +40,14 @@ describe("PriorityBoard", () => {
   });
 
   it("puts each task in the column for its priority", () => {
-    render(<PriorityBoard tasks={[...buildTasks("critical", 1), ...buildTasks("low", 2)]} />);
+    renderWithQuery(
+      <PriorityBoard
+        groups={makeGroups({
+          critical: { items: buildTasks("critical", 1) },
+          low: { items: buildTasks("low", 2) },
+        })}
+      />,
+    );
 
     const criticalColumn = screen.getByRole("region", { name: /Critical/ });
     const lowColumn = screen.getByRole("region", { name: /Low/ });
@@ -49,8 +57,10 @@ describe("PriorityBoard", () => {
     expect(within(lowColumn).queryByText("critical task 1")).toBeNull();
   });
 
-  it("shows at most five tasks and links to the rest", () => {
-    render(<PriorityBoard tasks={buildTasks("normal", 7)} />);
+  it("shows the server's total and links to the tasks the column does not show", () => {
+    renderWithQuery(
+      <PriorityBoard groups={makeGroups({ normal: { items: buildTasks("normal", 5), total: 7 } })} />,
+    );
 
     const normalColumn = screen.getByRole("region", { name: /Normal/ });
     const moreLink = within(normalColumn).getByRole("link", { name: "+2 more" });
@@ -59,14 +69,30 @@ describe("PriorityBoard", () => {
     expect(moreLink.getAttribute("href")).toBe("/tasks?priority=normal");
   });
 
-  it("shows no more-link when a column has five tasks or fewer", () => {
-    render(<PriorityBoard tasks={buildTasks("high", 5)} />);
+  it("shows no more-link when the column shows every task", () => {
+    renderWithQuery(
+      <PriorityBoard groups={makeGroups({ high: { items: buildTasks("high", 5) } })} />,
+    );
 
     expect(screen.queryByRole("link", { name: /more/ })).toBeNull();
   });
 
+  it("marks overdue tasks with text, not only colour", () => {
+    renderWithQuery(
+      <PriorityBoard
+        groups={makeGroups({
+          high: {
+            items: [makeTask({ priority: "high", due_at: "2020-01-01T09:00:00Z", is_overdue: true })],
+          },
+        })}
+      />,
+    );
+
+    expect(screen.getByText("Overdue")).toBeTruthy();
+  });
+
   it("opens Critical and High by default on mobile and toggles a column on tap", () => {
-    render(<PriorityBoard tasks={[]} />);
+    renderWithQuery(<PriorityBoard groups={makeGroups()} />);
 
     const criticalToggle = screen.getByRole("button", { name: /Critical/ });
     const highToggle = screen.getByRole("button", { name: /High/ });

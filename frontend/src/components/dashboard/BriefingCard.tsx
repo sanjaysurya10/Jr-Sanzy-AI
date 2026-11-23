@@ -1,9 +1,13 @@
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import type { PlaceholderBriefing } from "@/lib/placeholder";
+
+export interface BriefingSummary {
+  headline: string;
+  bullets: string[];
+}
 
 interface BriefingCardProps {
-  briefing: PlaceholderBriefing | null;
+  briefing: BriefingSummary | null;
 }
 
 export function BriefingCard({ briefing }: BriefingCardProps) {

@@ -6,39 +6,32 @@ import { useState } from "react";
 import { TaskItem } from "@/components/dashboard/TaskItem";
 import { NavIcon } from "@/components/layout/NavIcon";
 import { EmptyState } from "@/components/ui/EmptyState";
-import type { PlaceholderTask, Priority } from "@/lib/placeholder";
-
-const MAX_VISIBLE_TASKS = 5;
+import { PRIORITY_LABELS, type TaskPriority, type TaskRead } from "@/lib/api/types";
 
 interface PriorityStyle {
-  label: string;
   emptyMessage: string;
   container: string;
   heading: string;
 }
 
 // Same width for every column; Critical gets a tinted background, not more space.
-const PRIORITY_STYLES: Record<Priority, PriorityStyle> = {
+const PRIORITY_STYLES: Record<TaskPriority, PriorityStyle> = {
   critical: {
-    label: "Critical",
     emptyMessage: "Nothing critical. Good.",
     container: "border-t-red-600 bg-red-50 dark:border-t-red-500 dark:bg-red-950/40",
     heading: "text-red-800 dark:text-red-300",
   },
   high: {
-    label: "High",
     emptyMessage: "No high-priority tasks.",
     container: "border-t-orange-500 bg-surface",
     heading: "text-orange-800 dark:text-orange-300",
   },
   normal: {
-    label: "Normal",
     emptyMessage: "No normal-priority tasks.",
     container: "border-t-blue-600 bg-surface dark:border-t-blue-500",
     heading: "text-blue-800 dark:text-blue-300",
   },
   low: {
-    label: "Low",
     emptyMessage: "No low-priority tasks.",
     container: "border-t-green-600 bg-surface dark:border-t-green-500",
     heading: "text-green-800 dark:text-green-300",
@@ -46,22 +39,27 @@ const PRIORITY_STYLES: Record<Priority, PriorityStyle> = {
 };
 
 interface PriorityColumnProps {
-  priority: Priority;
-  tasks: PlaceholderTask[];
+  priority: TaskPriority;
+  tasks: TaskRead[];
+  total: number;
   isOpenByDefaultOnMobile: boolean;
 }
 
-export function PriorityColumn({ priority, tasks, isOpenByDefaultOnMobile }: PriorityColumnProps) {
+export function PriorityColumn({
+  priority,
+  tasks,
+  total,
+  isOpenByDefaultOnMobile,
+}: PriorityColumnProps) {
   const [isOpen, setIsOpen] = useState(isOpenByDefaultOnMobile);
   const style = PRIORITY_STYLES[priority];
-  const visibleTasks = tasks.slice(0, MAX_VISIBLE_TASKS);
-  const hiddenTaskCount = tasks.length - visibleTasks.length;
+  const hiddenTaskCount = total - tasks.length;
   const headingId = `priority-${priority}-heading`;
   const panelId = `priority-${priority}-panel`;
   const headingText = (
     <>
-      <span>{style.label}</span>
-      <span className="text-xs font-medium text-muted">{tasks.length}</span>
+      <span>{PRIORITY_LABELS[priority]}</span>
+      <span className="text-xs font-medium text-muted">{total}</span>
     </>
   );
 
@@ -91,7 +89,7 @@ export function PriorityColumn({ priority, tasks, isOpenByDefaultOnMobile }: Pri
           <EmptyState message={style.emptyMessage} />
         ) : (
           <ul className="flex flex-col gap-2">
-            {visibleTasks.map((task) => (
+            {tasks.map((task) => (
               <TaskItem key={task.id} task={task} />
             ))}
           </ul>

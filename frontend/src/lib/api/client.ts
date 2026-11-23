@@ -14,6 +14,18 @@ export class ApiError extends Error {
   }
 }
 
+export interface AuthHandlers {
+  getAccessToken: () => Promise<string | null>;
+  refreshAccessToken: () => Promise<string | null>;
+  onSessionExpired: () => void;
+}
+
+let authHandlers: AuthHandlers | null = null;
+
+export function setAuthHandlers(handlers: AuthHandlers | null): void {
+  authHandlers = handlers;
+}
+
 interface ErrorEnvelope {
   error: { code: string; message: string; details?: Record<string, unknown> };
 }
@@ -41,6 +53,22 @@ async function readJson(response: Response): Promise<unknown> {
   }
 }
 
+async function send(path: string, options: RequestInit, token: string | null): Promise<Response> {
+  const headers = new Headers(options.headers);
+  headers.set("Accept", "application/json");
+  if (typeof options.body === "string" && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+  if (token !== null) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  try {
+    return await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
+  } catch {
+    throw new ApiError(0, "NETWORK_ERROR", "Could not reach the backend");
+  }
+}
+
 export async function apiFetch<ResponseBody>(
   path: string,
   options: RequestInit = {},
@@ -49,14 +77,18 @@ export async function apiFetch<ResponseBody>(
     throw new ApiError(0, "CONFIG_ERROR", "NEXT_PUBLIC_API_URL is not set");
   }
 
-  let response: Response;
-  try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
-      ...options,
-      headers: { Accept: "application/json", ...options.headers },
-    });
-  } catch {
-    throw new ApiError(0, "NETWORK_ERROR", "Could not reach the backend");
+  const token = authHandlers ? await authHandlers.getAccessToken() : null;
+  let response = await send(path, options, token);
+
+  // FR-AUTH-4: on 401 refresh the session once; if that fails the session is over.
+  if (response.status === 401 && authHandlers) {
+    const refreshedToken = await authHandlers.refreshAccessToken();
+    if (refreshedToken !== null) {
+      response = await send(path, options, refreshedToken);
+    }
+    if (response.status === 401) {
+      authHandlers.onSessionExpired();
+    }
   }
 
   const body = await readJson(response);

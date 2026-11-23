@@ -1,14 +1,13 @@
 import { PriorityColumn } from "@/components/dashboard/PriorityColumn";
-import type { PlaceholderTask, Priority } from "@/lib/placeholder";
+import { PRIORITY_ORDER, type TaskPriority, type TasksByPriority } from "@/lib/api/types";
 
-const PRIORITY_ORDER: readonly Priority[] = ["critical", "high", "normal", "low"];
-const OPEN_BY_DEFAULT_ON_MOBILE: ReadonlySet<Priority> = new Set(["critical", "high"]);
+const OPEN_BY_DEFAULT_ON_MOBILE: ReadonlySet<TaskPriority> = new Set(["critical", "high"]);
 
 interface PriorityBoardProps {
-  tasks: PlaceholderTask[];
+  groups: TasksByPriority;
 }
 
-export function PriorityBoard({ tasks }: PriorityBoardProps) {
+export function PriorityBoard({ groups }: PriorityBoardProps) {
   return (
     <section aria-labelledby="priority-board-title">
       <h2 id="priority-board-title" className="sr-only">
@@ -19,7 +18,8 @@ export function PriorityBoard({ tasks }: PriorityBoardProps) {
           <PriorityColumn
             key={priority}
             priority={priority}
-            tasks={tasks.filter((task) => task.priority === priority)}
+            tasks={groups[priority].items}
+            total={groups[priority].total}
             isOpenByDefaultOnMobile={OPEN_BY_DEFAULT_ON_MOBILE.has(priority)}
           />
         ))}

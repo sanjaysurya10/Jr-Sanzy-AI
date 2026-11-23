@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { BackendStatus } from "@/components/layout/BackendStatus";
 import { NavIcon } from "@/components/layout/NavIcon";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import { TodayDate } from "@/components/layout/TodayDate";
 
 interface HeaderProps {
@@ -38,13 +39,7 @@ export function Header({ pendingDecisionCount }: HeaderProps) {
               </span>
             ) : null}
           </Link>
-          <div
-            role="img"
-            aria-label="Account"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15 text-sm font-semibold text-accent"
-          >
-            S
-          </div>
+          <SignOutButton />
         </div>
       </div>
     </header>
