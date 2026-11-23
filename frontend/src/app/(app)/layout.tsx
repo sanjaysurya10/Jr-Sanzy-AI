@@ -5,6 +5,10 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 
+// Everything here sits behind a client-side login check, so there is no content to
+// validate for instant navigation. Documented opt-out in the Next.js instant-navigation guide.
+export const instant = false;
+
 interface AppLayoutProps {
   children: ReactNode;
 }

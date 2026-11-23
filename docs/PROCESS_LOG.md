@@ -204,7 +204,9 @@ NOT verified: signing in and the create/complete/delete flow in the browser, bec
 needs the user's Supabase login. No credentials were entered anywhere.
 
 Done when:
-- [ ] Log in, create, complete and delete tasks; the dashboard updates (needs a Supabase user).
+- [~] Log in, create, complete and delete tasks; the dashboard updates. Login, create and
+      complete confirmed with the user's real Supabase login on 2026-11-23 (see below);
+      delete not yet tried in the browser, though covered by integration tests.
 - [x] Request without a token returns 401.
 - [x] Test confirms RLS is enabled on every table.
 - [x] Integration tests for tasks CRUD pass.
@@ -213,9 +215,27 @@ Security note for the user: Supabase allows public sign-ups by default. Every va
 creates a backend user, so after creating the real login, disable "Allow new users to sign
 up" in Supabase Auth settings.
 
+## 2026-11-23 -- Phase 4: first real login
+
+The user created their Supabase Auth user and signed in themselves in the browser pane
+(no credentials were handled by Claude). Observed afterwards:
+- Dashboard loaded with greeting "Good afternoon." and four empty priority columns; header
+  showed "Backend: OK".
+- Network log: OPTIONS then POST /api/v1/tasks returned 201, PATCH /api/v1/tasks/{id} returned
+  200, and /api/v1/dashboard was refetched after each change. All calls were authorised by
+  the real Supabase token, so the JWKS verification path works against the live project.
+- Activity feed showed "Created" then "Completed" for the user's test task.
+- Supabase reports `disable_signup: true`, so public sign-ups are already off.
+
+Dev-only console error: Next.js logs "Could not validate that a segment in your UI has
+instant navigation" for `/` and `/tasks`, because the login guard renders "Loading..." before
+the pages. Added the documented opt-out `export const instant = false` to
+`app/(app)/layout.tsx`. Could not confirm in the pane that the message stopped (the pane's
+console log is cumulative); it is dev-only and harmless. Lint, `tsc`, 38 tests and
+`next build` pass with the change.
+
 ## Blockers
 
-- Needs the user: a Supabase Auth user (email and password) to test login end to end; the
-  Supabase DB password reset and connection string in `backend/.env`; disabling public
-  sign-ups in Supabase Auth settings.
+- Needs the user: reset the Supabase DB password and put the connection string into
+  `backend/.env` so the migration can run on Supabase; try deleting a task in the UI.
 - Branches `phase-1` to `phase-4` are not merged to `main`; no PRs open.
