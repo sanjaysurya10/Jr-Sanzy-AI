@@ -234,8 +234,26 @@ the pages. Added the documented opt-out `export const instant = false` to
 console log is cumulative); it is dev-only and harmless. Lint, `tsc`, 38 tests and
 `next build` pass with the change.
 
+## 2026-11-23 -- Merge to main
+
+- The user approved merging. History was a single linear chain, so `main` was created at the
+  tip of `phase-4-frontend` (d2cf24f) with each phase's commits intact; no merge commits.
+  Pushed with tags `v0.1.0` (Phases 0-1), `v0.2.0` (Phase 2) and `v0.3.0` (Phase 3).
+- `v0.4.0` deliberately not tagged: Phase 4 still has an unticked box (delete not tried in the
+  UI, migration not yet run on Supabase).
+- CI on `main` (run 45211654332) passed, backend and frontend.
+- Findings, for the user to decide:
+  - The GitHub repo is **public**, but PRD 9 says private until Phase 11.
+  - GitHub's default branch is still `phase-1-backend-skeleton`; it should be `main`
+    (repo Settings -> Branches).
+  - Commits carry the user's Gmail address as author; that is visible while the repo is public.
+- Secret scan of all history: no `.env` files, keys, tokens or real connection strings. Only
+  placeholders in `*.env.example` and dummy URLs in tests and CI. The Supabase project ref
+  appears in this log; it is not a secret.
+- No PRs were used (no `gh` CLI), so PRD 10.6's PR step was skipped at the user's request.
+
 ## Blockers
 
 - Needs the user: reset the Supabase DB password and put the connection string into
   `backend/.env` so the migration can run on Supabase; try deleting a task in the UI.
-- Branches `phase-1` to `phase-4` are not merged to `main`; no PRs open.
+- Decide: make the repo private and switch the default branch to `main` (see Merge to main).
