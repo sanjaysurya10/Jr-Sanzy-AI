@@ -11,6 +11,8 @@ from app.api.v1.router import api_router
 from app.core.config import Settings, get_settings
 from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging, request_id_var
+from app.core.security import TokenVerifier
+from app.db.session import build_session_factory
 
 logger = logging.getLogger("app.request")
 
@@ -19,6 +21,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
     configure_logging()
     app = FastAPI(title="Jr Sanzy API", version=__version__)
+    app.state.session_factory = build_session_factory(settings.database_url)
+    app.state.token_verifier = TokenVerifier(
+        supabase_url=settings.supabase_url, jwt_secret=settings.supabase_jwt_secret
+    )
 
     @app.middleware("http")
     async def log_request(
@@ -59,4 +65,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     return app
 
 
-app = create_app()
+_app: FastAPI | None = None
+
+
+def __getattr__(name: str) -> FastAPI:
+    """Build `app` on first access (`uvicorn app.main:app`), not on import, so importing
+    create_app in tests does not require production settings in the environment."""
+    global _app
+    if name == "app":
+        if _app is None:
+            _app = create_app()
+        return _app
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

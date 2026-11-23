@@ -130,6 +130,47 @@ Done when:
 
 CI: run 43927770255 on `phase-3-connect` (commit 329b22e) passed, backend and frontend jobs.
 
+## 2026-11-23 -- Phase 4: Database and auth (backend half)
+
+Built (branch `phase-4-db-auth`):
+- SQLAlchemy base with UUID, timestamp and user-owned mixins; models for `users`,
+  `user_settings`, `api_keys`, `tasks`, `activity_logs`; Alembic migration 0001 that enables
+  RLS (no policies) on every table including `alembic_version`.
+- `TokenVerifier` (FR-AUTH-3): JWKS-based ES256/RS256 verification with signature, expiry,
+  issuer and audience checks; HS256 accepted only when `SUPABASE_JWT_SECRET` is set.
+- `get_current_user` upserts the user and default settings on first sight.
+- Tasks CRUD (`/tasks`), `/me`, `/dashboard` (greeting, tasks grouped by priority with
+  totals, 10 latest activity entries), `/health` now reports `db`. Activity log entries for
+  task create, complete, reopen and delete.
+- Packages (all named in PRD 3.1): sqlalchemy, alembic, psycopg, pyjwt, tzdata.
+
+Decisions and deviations:
+- Test database: the existing Postgres 18 service on this laptop needs the `postgres`
+  superuser password, which must not be shared in chat. A Supabase branch was priced at
+  about EUR 0.01/hour, which breaks COST-1 without approval. Instead a private Postgres
+  instance was created at `%LOCALAPPDATA%\JrSanzy\pgdata` on port 5433 (login role
+  `jr_sanzy_local`, databases `jr_sanzy_dev` and `jr_sanzy_test`). The existing service is
+  untouched. Start it with `pg_ctl -D "%LOCALAPPDATA%\JrSanzy\pgdata" start`; it does not
+  auto-start after a reboot.
+- `backend/.env` holds a generated local password and is git-ignored. `SUPABASE_URL` there
+  is a placeholder until the real project exists.
+- The test suite drops and recreates the `public` schema of `TEST_DATABASE_URL` on every run.
+- Each test runs in a rolled-back transaction; the real migrations build the schema.
+- `app.main:app` is built lazily so importing `create_app` needs no production settings.
+- `/health` returns 200 with `db: "error"` when the database is down, so cold-start waits
+  still see the server answer.
+
+Verified locally: ruff clean, mypy strict clean, 146 tests pass against real Postgres,
+98% coverage.
+
+Done when (frontend half still to build):
+- [ ] Log in, create, complete and delete tasks; the dashboard updates.
+- [x] Request without a token returns 401 (checked for every non-public route).
+- [x] Test confirms RLS is enabled on every table.
+- [x] Integration tests for tasks CRUD pass.
+
 ## Blockers
 
-- None for Phase 3. Phase 4 needs the Supabase project and a test-database choice.
+- Phase 4 frontend (login, AuthGuard, tasks page, live board) needs a Supabase project:
+  URL, anon key and a Supabase Auth user. Backend `.env` also needs its `DATABASE_URL`.
+- Branches `phase-1`, `phase-2`, `phase-3` are not merged to `main`; no PRs open.

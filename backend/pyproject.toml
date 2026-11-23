@@ -4,8 +4,13 @@ version = "0.1.0"
 description = "Jr Sanzy backend API"
 requires-python = ">=3.12"
 dependencies = [
+    "alembic>=1.20.1",
     "fastapi>=0.163.1",
+    "psycopg[binary]>=3.3.9",
     "pydantic-settings>=2.16.3",
+    "pyjwt[crypto]>=2.15.1",
+    "sqlalchemy>=2.1.8",
+    "tzdata>=2026.6",
     "uvicorn[standard]>=0.54.0",
 ]
 

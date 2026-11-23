@@ -51,15 +51,19 @@ async def test_error_responses_carry_cors_header(client: AsyncClient) -> None:
     assert response.headers["access-control-allow-origin"] == ALLOWED_ORIGIN
 
 
-async def test_every_configured_origin_is_allowed() -> None:
-    settings = Settings(
-        _env_file=None, cors_origins="http://localhost:3000, https://jr-sanzy.example"
+async def test_every_configured_origin_is_allowed(settings: Settings) -> None:
+    multi_origin_settings = settings.model_copy(
+        update={"cors_origins": "http://localhost:3000, https://jr-sanzy.example"}
     )
-    transport = ASGITransport(app=create_app(settings))
+    transport = ASGITransport(app=create_app(multi_origin_settings))
 
     async with AsyncClient(transport=transport, base_url="http://test") as multi_origin_client:
-        response = await multi_origin_client.get(
-            "/api/v1/health", headers={"Origin": "https://jr-sanzy.example"}
+        response = await multi_origin_client.options(
+            "/api/v1/health",
+            headers={
+                "Origin": "https://jr-sanzy.example",
+                "Access-Control-Request-Method": "GET",
+            },
         )
 
     assert response.headers["access-control-allow-origin"] == "https://jr-sanzy.example"
