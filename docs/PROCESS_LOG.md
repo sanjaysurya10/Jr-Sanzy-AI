@@ -204,9 +204,8 @@ NOT verified: signing in and the create/complete/delete flow in the browser, bec
 needs the user's Supabase login. No credentials were entered anywhere.
 
 Done when:
-- [~] Log in, create, complete and delete tasks; the dashboard updates. Login, create and
-      complete confirmed with the user's real Supabase login on 2026-11-23 (see below);
-      delete not yet tried in the browser, though covered by integration tests.
+- [x] Log in, create, complete and delete tasks; the dashboard updates. Confirmed by the user
+      with their real Supabase login on 2026-11-23; delete confirmed working afterwards.
 - [x] Request without a token returns 401.
 - [x] Test confirms RLS is enabled on every table.
 - [x] Integration tests for tasks CRUD pass.
@@ -270,7 +269,13 @@ console log is cumulative); it is dev-only and harmless. Lint, `tsc`, 38 tests a
 - Backend restarted on Supabase: `/api/v1/health` reports the database reachable.
 - The user's earlier test task lives in the local dev database, not in Supabase.
 
+## 2026-11-23 -- Phase 4 complete
+
+All four "Done when" boxes are ticked. Code is unchanged since `main` (d2cf24f), so tag
+`v0.4.0` was placed there. Next is Phase 5 (deploy), which needs the user's Render and
+Vercel accounts, created without payment methods.
+
 ## Blockers
 
-- Needs the user: try deleting a task in the UI; create Render and Vercel accounts for Phase 5.
+- Needs the user: create Render and Vercel accounts (no payment methods) for Phase 5.
 - Optional: switch GitHub's default branch to `main` (repo Settings -> Branches).
