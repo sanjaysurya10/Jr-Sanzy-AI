@@ -251,9 +251,11 @@ console log is cumulative); it is dev-only and harmless. Lint, `tsc`, 38 tests a
   placeholders in `*.env.example` and dummy URLs in tests and CI. The Supabase project ref
   appears in this log; it is not a secret.
 - No PRs were used (no `gh` CLI), so PRD 10.6's PR step was skipped at the user's request.
+- Decision (user, 2026-11-23): keep the repo public. Commit history is not rewritten; the
+  author email stays visible. Default branch should still be switched to `main` in GitHub settings.
 
 ## Blockers
 
 - Needs the user: reset the Supabase DB password and put the connection string into
   `backend/.env` so the migration can run on Supabase; try deleting a task in the UI.
-- Decide: make the repo private and switch the default branch to `main` (see Merge to main).
+- Optional: switch GitHub's default branch to `main` (repo Settings -> Branches).
