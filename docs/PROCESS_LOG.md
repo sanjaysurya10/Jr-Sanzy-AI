@@ -254,8 +254,23 @@ console log is cumulative); it is dev-only and harmless. Lint, `tsc`, 38 tests a
 - Decision (user, 2026-11-23): keep the repo public. Commit history is not rewritten; the
   author email stays visible. Default branch should still be switched to `main` in GitHub settings.
 
+## 2026-11-23 -- Phase 4: migration on Supabase
+
+- The user put the Supabase **Session pooler** connection string into `backend/.env`
+  (the direct connection is IPv6-only, which may fail from the laptop and from Render).
+  `?sslmode=require` was appended per PRD 10.5; client-to-pooler TLS confirmed.
+- Before migrating, the project's `public` schema was empty. `alembic upgrade head` then
+  created all tables at revision 0001. Verified on Supabase: `users`, `user_settings`,
+  `api_keys`, `tasks`, `activity_logs` and `alembic_version` all have RLS enabled; 0 policies.
+- `TEST_DATABASE_URL` still points at the private local Postgres (port 5433), so the test
+  suite, which drops and recreates its schema, cannot touch the Supabase data.
+- Supabase security advisor: 6 INFO "RLS enabled, no policy" (intentional, PRD 5.2) and one
+  WARN, leaked-password protection disabled. That feature is a paid-plan option, so it is not
+  enabled (COST-1); the single login uses a password the user chose.
+- Backend restarted on Supabase: `/api/v1/health` reports the database reachable.
+- The user's earlier test task lives in the local dev database, not in Supabase.
+
 ## Blockers
 
-- Needs the user: reset the Supabase DB password and put the connection string into
-  `backend/.env` so the migration can run on Supabase; try deleting a task in the UI.
+- Needs the user: try deleting a task in the UI; create Render and Vercel accounts for Phase 5.
 - Optional: switch GitHub's default branch to `main` (repo Settings -> Branches).
